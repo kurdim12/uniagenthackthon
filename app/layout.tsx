@@ -12,6 +12,12 @@ export const metadata: Metadata = {
   description: "Your intelligent academic companion for organizing studies, planning assignments, and learning effectively.",
   manifest: "/manifest.json",
   themeColor: "#0066cc",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+  },
   icons: {
     icon: "/icon.svg",
     apple: "/icon.svg",
@@ -30,6 +36,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      </head>
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"

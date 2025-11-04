@@ -42,7 +42,7 @@ export function CourseAssignments() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-3 overflow-x-auto touch-scroll">
             {columns.map((column) => {
               const columnAssignments = assignments.filter((a) => a.status === column.id);
               return (

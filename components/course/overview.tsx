@@ -51,7 +51,7 @@ export function CourseOverview() {
       {/* Auto Actions Panel */}
       <AutoActionsPanel />
       {/* Progress Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 md:gap-4 grid-cols-2 lg:grid-cols-4">
         <Card className="border-2 border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="text-sm font-medium">XP Earned</CardTitle>
@@ -100,7 +100,7 @@ export function CourseOverview() {
       </div>
 
       {/* Main Grid */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
         {/* Due This Week */}
         <Card>
           <CardHeader>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -21,6 +22,8 @@ import {
   RotateCcw,
   Bell,
   User,
+  Menu,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,6 +56,21 @@ export function Navbar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const { exportData, resetData, importData } = useStore();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setMobileMenuOpen(false);
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleImport = async () => {
     const input = document.createElement("input");
@@ -81,17 +99,17 @@ export function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center">
+    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-top">
+      <div className="container mx-auto px-3 md:px-4">
+        <div className="flex h-14 md:h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2 mr-6">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600" />
-            <span className="font-bold text-xl">UNI-Agent</span>
+          <Link href="/" className="flex items-center space-x-2 mr-4 shrink-0">
+            <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600" />
+            <span className="font-bold text-lg md:text-xl">UNI-Agent</span>
           </Link>
 
-          {/* Navigation Links */}
-          <div className="flex items-center space-x-1 flex-1 overflow-x-auto">
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex items-center space-x-1 flex-1 overflow-x-auto mx-4">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -107,15 +125,31 @@ export function Navbar() {
                     )}
                   >
                     <Icon className="w-4 h-4" />
-                    <span className="hidden md:inline">{item.label}</span>
+                    <span>{item.label}</span>
                   </Button>
                 </Link>
               );
             })}
           </div>
 
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="h-9 w-9"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
+
           {/* Right side actions */}
-          <div className="flex items-center gap-2 ml-4">
+          <div className="hidden md:flex items-center gap-2 ml-4 shrink-0">
             {/* Mode Indicator */}
             <ModeIndicator />
             
@@ -124,6 +158,7 @@ export function Navbar() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="h-9 w-9"
             >
               <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -131,14 +166,14 @@ export function Navbar() {
             </Button>
 
             {/* Notifications */}
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="h-9 w-9">
               <Bell className="h-5 w-5" />
             </Button>
 
             {/* Data Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="h-9 w-9">
                   <Settings className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
@@ -162,13 +197,81 @@ export function Navbar() {
             </DropdownMenu>
 
             {/* Profile */}
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="h-9 w-9">
               <User className="h-5 w-5" />
             </Button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border py-2 mt-2 space-y-1 max-h-[calc(100vh-80px)] overflow-y-auto touch-scroll safe-bottom">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Button
+                    variant={isActive ? "secondary" : "ghost"}
+                    className={cn(
+                      "w-full justify-start gap-3 h-12 min-h-[44px]",
+                      isActive && "bg-accent font-semibold"
+                    )}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </Button>
+                </Link>
+              );
+            })}
+            
+            {/* Mobile Actions */}
+            <div className="pt-2 border-t border-border mt-2 space-y-1">
+              <div className="px-3 py-2">
+                <ModeIndicator />
+              </div>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 h-12 min-h-[44px]"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              >
+                {theme === "dark" ? (
+                  <>
+                    <Sun className="w-5 h-5" />
+                    <span>Light Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-5 h-5" />
+                    <span>Dark Mode</span>
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 h-12 min-h-[44px]"
+                onClick={exportData}
+              >
+                <Download className="w-5 h-5" />
+                <span>Export Data</span>
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 h-12 min-h-[44px]"
+                onClick={handleImport}
+              >
+                <Upload className="w-5 h-5" />
+                <span>Import Data</span>
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
 }
-

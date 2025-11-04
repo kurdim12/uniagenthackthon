@@ -99,17 +99,17 @@ export default function StudyPlanPage() {
   });
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="container mx-auto px-3 md:px-4 py-6 md:py-8">
+      <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight">Study Plan</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-4xl font-bold tracking-tight">Study Plan</h1>
+            <p className="text-sm md:text-base text-muted-foreground mt-1">
               Your weekly study schedule and planning
             </p>
           </div>
-          <Button onClick={handleReplan} disabled={isReplanning}>
+          <Button onClick={handleReplan} disabled={isReplanning} className="min-h-[44px] w-full sm:w-auto">
             {isReplanning ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -96,10 +96,10 @@ export function CourseTutor() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
+    <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-3">
       {/* Chat */}
       <div className="lg:col-span-2">
-        <Card className="min-h-[600px] flex flex-col">
+        <Card className="min-h-[500px] md:min-h-[600px] flex flex-col">
           <CardHeader>
             <CardTitle>Ask Course Tutor</CardTitle>
           </CardHeader>

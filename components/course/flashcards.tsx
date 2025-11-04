@@ -42,6 +42,9 @@ export function CourseFlashcards() {
   const notes = useStore((state) => 
     state.notes.filter((n) => n.courseId === courseId)
   );
+  const materials = useStore((state) =>
+    state.materials.filter((m) => m.courseId === courseId && m.type === "pdf")
+  );
   const addFlashcard = useStore((state) => state.addFlashcard);
   
   const [currentCard, setCurrentCard] = useState<Flashcard | null>(null);
@@ -49,6 +52,8 @@ export function CourseFlashcards() {
   const [reviewedToday, setReviewedToday] = useState<Set<string>>(new Set());
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
+  const [generateFromMaterialsOpen, setGenerateFromMaterialsOpen] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState<string>("");
   
   // Create form state
   const [front, setFront] = useState("");
@@ -171,6 +176,48 @@ export function CourseFlashcards() {
     }
   };
 
+  const handleGenerateFromMaterial = () => {
+    if (!selectedMaterial || !courseId) return;
+
+    const material = materials.find((m) => m.id === selectedMaterial);
+    if (!material || !material.textPreview) return;
+
+    // Extract key concepts from PDF text
+    const text = material.textPreview;
+    const sentences = text.split(/[.!?]\s+/).filter(s => s.trim().length > 20);
+    const generated: Flashcard[] = [];
+
+    // Create flashcards from key sentences
+    sentences.slice(0, 8).forEach((sentence, idx) => {
+      // Try to find definition patterns
+      const definitionMatch = sentence.match(/([A-Z][^.!?]+)\s+is\s+(.+)/i);
+      if (definitionMatch) {
+        const front = definitionMatch[1].trim() + "?";
+        const back = definitionMatch[2].trim();
+        if (front.length > 5 && back.length > 10) {
+          generated.push(createFlashcard(courseId, front, back, "medium"));
+        }
+      } else {
+        // Create Q&A from sentence
+        const words = sentence.split(/\s+/);
+        if (words.length > 10) {
+          const front = `What is ${words.slice(0, 5).join(" ")}?`;
+          const back = sentence.substring(0, 200);
+          generated.push(createFlashcard(courseId, front, back, "medium"));
+        }
+      }
+    });
+
+    // Add generated flashcards
+    generated.forEach(card => addFlashcard(card));
+    setGenerateFromMaterialsOpen(false);
+    setSelectedMaterial("");
+
+    if (generated.length > 0 && !currentCard) {
+      setCurrentCard(generated[0]);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header with Actions */}
@@ -178,7 +225,7 @@ export function CourseFlashcards() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Flashcards</CardTitle>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="sm">
@@ -211,6 +258,47 @@ export function CourseFlashcards() {
                     </div>
                     <Button onClick={handleGenerateFromNote} disabled={!selectedNote} className="w-full">
                       Generate Flashcards
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              
+              <Dialog open={generateFromMaterialsOpen} onOpenChange={setGenerateFromMaterialsOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <FileText className="mr-2 h-4 w-4" />
+                    Generate from PDF
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Generate Flashcards from PDF Materials</DialogTitle>
+                    <DialogDescription>
+                      Select a PDF material to automatically extract and generate flashcards
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Select PDF Material</Label>
+                      <Select value={selectedMaterial} onValueChange={setSelectedMaterial}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Choose a PDF..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {materials.length === 0 ? (
+                            <SelectItem value="" disabled>No PDF materials available</SelectItem>
+                          ) : (
+                            materials.map((material) => (
+                              <SelectItem key={material.id} value={material.id}>
+                                {material.title}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button onClick={handleGenerateFromMaterial} disabled={!selectedMaterial || materials.length === 0} className="w-full">
+                      Generate Flashcards from PDF
                     </Button>
                   </div>
                 </DialogContent>
@@ -275,7 +363,7 @@ export function CourseFlashcards() {
       </Card>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-3 md:gap-4 grid-cols-2 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">Due Today</CardTitle>
