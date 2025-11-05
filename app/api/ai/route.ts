@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
   try {
     const body: AIRequest = await request.json();
     const { prompt, context, mode: requestMode, userId } = body;
+    const streamEnabled = (body as any).stream === true; // Disable streaming by default
 
     // Use orchestrator if OpenAI API key is available
     if (config.ai.apiKey && config.ai.apiKey !== "sk-demo" && !isOfflineMode()) {
@@ -157,17 +158,58 @@ You are acting as the ${agent.toUpperCase()} agent, specialized in ${agent}-rela
     let answer: string;
 
     if (config.features.useRealAI && config.ai.apiKey && config.ai.apiKey !== "sk-demo") {
-      const completion = await openai.chat.completions.create({
-        model: config.ai.chatModel,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        max_tokens: 500,
-        temperature: 0.7,
-      });
+      // Use streaming if enabled
+      if (streamEnabled) {
+        const completion = await openai.chat.completions.create({
+          model: config.ai.chatModel,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          max_tokens: 1500,
+          temperature: 0.7,
+          stream: true,
+        });
 
-      answer = completion.choices[0]?.message?.content || "No response generated.";
+        // Convert OpenAI stream to ReadableStream for Edge runtime
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          async start(controller) {
+            try {
+              for await (const chunk of completion) {
+                const text = chunk.choices[0]?.delta?.content || "";
+                if (text) {
+                  controller.enqueue(encoder.encode(text));
+                }
+              }
+              controller.close();
+            } catch (error) {
+              controller.error(error);
+            }
+          },
+        });
+
+        return new Response(stream, {
+          headers: {
+            "Content-Type": "text/plain; charset=utf-8",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+          },
+        });
+      } else {
+        // Non-streaming mode
+        const completion = await openai.chat.completions.create({
+          model: config.ai.chatModel,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          max_tokens: 500,
+          temperature: 0.7,
+        });
+
+        answer = completion.choices[0]?.message?.content || "No response generated.";
+      }
     } else {
       // Mock response for demo without API key
       answer = generateMockResponse(prompt, agent, context);
@@ -288,6 +330,9 @@ async function retrieveFromCloud(prompt: string) {
     return [];
   }
 }
+
+// Mark as edge runtime for better streaming performance
+export const runtime = "edge";
 
 function generateMockResponse(
   prompt: string,

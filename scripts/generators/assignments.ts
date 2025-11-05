@@ -27,7 +27,7 @@ export function generateCSAssignments(courses: Course[], userId: string, now: Da
         ? "Practice with Python variables, data types, and basic operations. Write 5 functions demonstrating different concepts."
         : "Introduction to course concepts and fundamentals.",
       dueDate: hw1Due.toISOString(),
-      status: "completed",
+      status: "submitted",
       priority: "medium",
       grade: 78,
       feedback: "Good start! Review loops and function syntax. Make sure to test edge cases.",
@@ -47,7 +47,7 @@ export function generateCSAssignments(courses: Course[], userId: string, now: Da
         ? "Implement functions using loops, conditionals, and error handling. Include unit tests."
         : "Apply learned concepts to more complex problems.",
       dueDate: hw2Due.toISOString(),
-      status: "completed",
+      status: "submitted",
       priority: "high",
       grade: 85,
       feedback: "Much better! Your code structure improved. Watch out for edge cases and add more comments.",
@@ -67,7 +67,7 @@ export function generateCSAssignments(courses: Course[], userId: string, now: Da
         ? "Use list comprehensions, dictionaries, and tuples. Optimize code for performance."
         : "Apply advanced data structures to solve problems.",
       dueDate: hw3Due.toISOString(),
-      status: "completed",
+      status: "submitted",
       priority: "high",
       grade: 92,
       feedback: "Excellent work! Your code is clean and well-optimized. Great job on the optimization section.",
@@ -116,7 +116,7 @@ export function generateCSAssignments(courses: Course[], userId: string, now: Da
         ? "Design and implement classes. Include inheritance, polymorphism, and encapsulation."
         : "Implement BST operations: insert, search, delete, and traversal.",
       dueDate: hw5Due.toISOString(),
-      status: "not_started",
+      status: "planned",
       priority: "medium",
       estimatedTimeRemaining: 6 * 60, // 6 hours
       autoSuggestion: "Start this weekend - typically takes 6 hours based on your pace",
@@ -134,7 +134,7 @@ export function generateCSAssignments(courses: Course[], userId: string, now: Da
         ? "Implement BFS and DFS. Compare performance and use cases."
         : "Final project preparation and planning.",
       dueDate: hw6Due.toISOString(),
-      status: "not_started",
+      status: "planned",
       priority: "low",
       estimatedTimeRemaining: 8 * 60,
     });
@@ -159,7 +159,7 @@ export function generateBusinessAssignments(courses: Course[], userId: string, n
         ? "Compare and contrast classical and operant conditioning. Provide real-world examples."
         : "Analyze a company using SWOT framework.",
       dueDate: hw1Due.toISOString(),
-      status: "completed",
+      status: "submitted",
       priority: "medium",
       grade: 82,
       feedback: "Good analysis. Add more examples and connect to course materials.",
@@ -196,7 +196,7 @@ export function generateBusinessAssignments(courses: Course[], userId: string, n
       title: course.code === "BUS201" ? "Organizational Behavior Analysis" : "Research Paper",
       description: "Apply course concepts to real-world scenarios.",
       dueDate: hw3Due.toISOString(),
-      status: "not_started",
+      status: "planned",
       priority: "medium",
       estimatedTimeRemaining: 5 * 60,
     });

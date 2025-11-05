@@ -51,13 +51,18 @@ export function CourseTutor() {
       const response = await aiAsk(question, { courseId, materials, notes, userId: user.id });
       const duration = Math.round((Date.now() - startTime) / 1000);
       
+      // Ensure response has required fields
+      if (!response || !response.answer) {
+        throw new Error("Invalid response from AI");
+      }
+      
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           content: response.answer,
           agent: response.agent,
-          citations: response.citations,
+          citations: response.citations || [],
           workflow: response.workflow,
           reasoning: response.reasoning,
           agentCalls: response.agentCalls,
@@ -73,7 +78,7 @@ export function CourseTutor() {
           "tutor",
           {
             question,
-            materialRefs: response.citations.map((c) => c.sourceId).filter(Boolean),
+            materialRefs: (response.citations || []).map((c) => c.sourceId).filter(Boolean),
           },
           duration,
           "completed"
@@ -88,7 +93,11 @@ export function CourseTutor() {
       console.error("Failed to get response:", error);
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Sorry, I encountered an error. Please try again." },
+        { 
+          role: "assistant", 
+          content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
+          citations: []
+        },
       ]);
     } finally {
       setLoading(false);
@@ -96,133 +105,169 @@ export function CourseTutor() {
   };
 
   return (
-    <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-3">
-      {/* Chat */}
-      <div className="lg:col-span-2">
-        <Card className="min-h-[500px] md:min-h-[600px] flex flex-col">
-          <CardHeader>
-            <CardTitle>Ask Course Tutor</CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col">
-            <div className="flex-1 space-y-4 overflow-y-auto mb-4 max-h-[450px]">
-              {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                  <p className="text-lg font-medium mb-2">Start a conversation</p>
-                  <p className="text-sm text-muted-foreground">
-                    Ask questions about this course's materials and concepts
-                  </p>
-                </div>
-              ) : (
-                messages.map((message, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+    <div className="space-y-6">
+      {/* AI Tutor Card - Modern Design */}
+      <Card className="border-2 border-primary/20 shadow-xl">
+        <CardHeader className="border-b bg-gradient-to-r from-primary/5 to-purple-500/5">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <span className="text-3xl">🧠</span>
+                AI Course Tutor
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Powered by GPT-4 • Search your materials • Get instant answers
+              </p>
+            </div>
+            {messages.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setMessages([])}
+              >
+                Clear Chat
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          {/* Chat Messages */}
+          <div className="space-y-4 mb-6 max-h-[500px] overflow-y-auto">
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="text-6xl mb-4">✨</div>
+                <p className="text-xl font-semibold mb-2">Ask me anything about this course!</p>
+                <p className="text-sm text-muted-foreground max-w-md">
+                  I can explain concepts, help with assignments, search your materials, and more.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6 max-w-2xl">
+                  <button
+                    onClick={() => setInput("Explain the main concepts covered in this course")}
+                    className="p-3 rounded-lg border-2 border-primary/20 hover:border-primary/40 transition-all text-left hover:bg-primary/5"
                   >
-                    <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-accent"
-                      }`}
-                    >
-                      {message.agent && (
-                        <div className="mb-2">
-                          <AgentChip agent={message.agent} />
-                        </div>
-                      )}
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                      {message.citations && message.citations.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-muted-foreground/20">
-                          <p className="text-xs font-semibold mb-1">Sources:</p>
+                    <p className="text-sm font-medium">📚 Explain key concepts</p>
+                  </button>
+                  <button
+                    onClick={() => setInput("What topics should I focus on for the next exam?")}
+                    className="p-3 rounded-lg border-2 border-primary/20 hover:border-primary/40 transition-all text-left hover:bg-primary/5"
+                  >
+                    <p className="text-sm font-medium">🎯 Study guidance</p>
+                  </button>
+                  <button
+                    onClick={() => setInput("Create a quiz to test my understanding")}
+                    className="p-3 rounded-lg border-2 border-primary/20 hover:border-primary/40 transition-all text-left hover:bg-primary/5"
+                  >
+                    <p className="text-sm font-medium">❓ Generate quiz</p>
+                  </button>
+                  <button
+                    onClick={() => setInput("Summarize my course materials")}
+                    className="p-3 rounded-lg border-2 border-primary/20 hover:border-primary/40 transition-all text-left hover:bg-primary/5"
+                  >
+                    <p className="text-sm font-medium">📝 Summarize materials</p>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              messages.map((message, idx) => (
+                <div
+                  key={idx}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[85%] rounded-2xl px-5 py-4 ${
+                      message.role === "user"
+                        ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg"
+                        : "bg-gradient-to-r from-accent/50 to-accent border-2 border-accent"
+                    }`}
+                  >
+                    {message.agent && (
+                      <div className="mb-3">
+                        <AgentChip agent={message.agent} />
+                      </div>
+                    )}
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    {message.citations && message.citations.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-muted-foreground/20">
+                        <p className="text-xs font-semibold mb-2 flex items-center gap-1">
+                          📚 Sources:
+                        </p>
+                        <div className="space-y-1">
                           {message.citations.map((citation, i) => (
-                            <div key={i} className="text-xs opacity-75">
-                              <span className="font-mono">{citation.label}</span>{" "}
+                            <div key={i} className="text-xs bg-background/50 p-2 rounded">
+                              <span className="font-mono font-semibold">{citation.label}</span>{" "}
                               {citation.snippet && (
-                                <span className="italic">{citation.snippet.substring(0, 60)}...</span>
+                                <span className="italic text-muted-foreground">
+                                  {citation.snippet.substring(0, 100)}...
+                                </span>
                               )}
                             </div>
                           ))}
                         </div>
-                      )}
-                      {/* Workflow Visualization */}
-                      {message.workflow && (
+                      </div>
+                    )}
+                    {message.workflow && (
+                      <div className="mt-4">
                         <WorkflowVisualization
                           workflow={message.workflow}
                           agentCalls={message.agentCalls}
                           toolsUsed={message.toolsUsed}
                         />
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-              {loading && (
-                <div className="flex justify-start">
-                  <div className="rounded-2xl px-4 py-3 bg-accent">
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Textarea
-                placeholder="Ask a question about this course..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                    handleSend();
-                  }
-                }}
-                className="min-h-[80px]"
-              />
-              <div className="flex items-center gap-2">
-                <VoiceInput
-                  onTranscript={(text) => setInput(text)}
-                  disabled={loading}
-                />
-                <Button onClick={handleSend} disabled={!input.trim() || loading} className="flex-1">
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Thinking...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="mr-2 h-4 w-4" />
-                      Send
-                    </>
-                  )}
-                </Button>
+              ))
+            )}
+            {loading && (
+              <div className="flex justify-start">
+                <div className="rounded-2xl px-5 py-4 bg-accent/50 border-2 border-accent flex items-center gap-3">
+                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  <span className="text-sm">AI is thinking...</span>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            )}
+          </div>
 
-      {/* Citations Sidebar */}
-      <div>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Course Materials</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {materials.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No materials available</p>
-              ) : (
-                materials.map((material) => (
-                  <div key={material.id} className="p-2 rounded-lg bg-accent/50">
-                    <p className="text-sm font-medium">{material.title}</p>
-                    <p className="text-xs text-muted-foreground">{material.type}</p>
-                  </div>
-                ))
-              )}
+          {/* Input Area */}
+          <div className="space-y-3">
+            <Textarea
+              placeholder="Ask a question about this course... (Cmd/Ctrl + Enter to send)"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                  handleSend();
+                }
+              }}
+              className="min-h-[100px] resize-none text-base"
+            />
+            <div className="flex items-center gap-3">
+              <VoiceInput
+                onTranscript={(text) => setInput(text)}
+                disabled={loading}
+              />
+              <Button 
+                onClick={handleSend} 
+                disabled={!input.trim() || loading} 
+                className="flex-1 h-12 text-base font-semibold"
+                size="lg"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Thinking...
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-5 w-5" />
+                    Send Message
+                  </>
+                )}
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
