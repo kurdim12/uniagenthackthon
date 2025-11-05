@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
             order: index,
             type: q.type,
             content: q.content,
-            choices: q.choices || null,
+            choices: q.choices ? q.choices : undefined,
             canonicalAnswer: q.canonicalAnswer,
             weight: q.weight,
           })),
