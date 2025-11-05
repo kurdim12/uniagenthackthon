@@ -26,13 +26,8 @@ export function generateCSAssignments(courses: Course[], userId: string, now: Da
       description: course.code === "CS101" 
         ? "Practice with Python variables, data types, and basic operations. Write 5 functions demonstrating different concepts."
         : "Introduction to course concepts and fundamentals.",
-      dueDate: hw1Due.toISOString(),
+      dueAt: hw1Due.toISOString(),
       status: "submitted",
-      priority: "medium",
-      grade: 78,
-      feedback: "Good start! Review loops and function syntax. Make sure to test edge cases.",
-      timeSpent: 4 * 60, // 4 hours in minutes
-      submittedAt: new Date(hw1Due.getTime() - 2 * 60 * 60 * 1000).toISOString(), // Submitted 2 hours before due
     });
     
     // Assignment 2: Improvement visible
@@ -46,13 +41,8 @@ export function generateCSAssignments(courses: Course[], userId: string, now: Da
       description: course.code === "CS101"
         ? "Implement functions using loops, conditionals, and error handling. Include unit tests."
         : "Apply learned concepts to more complex problems.",
-      dueDate: hw2Due.toISOString(),
+      dueAt: hw2Due.toISOString(),
       status: "submitted",
-      priority: "high",
-      grade: 85,
-      feedback: "Much better! Your code structure improved. Watch out for edge cases and add more comments.",
-      timeSpent: 5 * 60, // 5 hours
-      submittedAt: new Date(hw2Due.getTime() - 1 * 60 * 60 * 1000).toISOString(),
     });
     
     // Assignment 3: Strong performance
@@ -66,13 +56,8 @@ export function generateCSAssignments(courses: Course[], userId: string, now: Da
       description: course.code === "CS101"
         ? "Use list comprehensions, dictionaries, and tuples. Optimize code for performance."
         : "Apply advanced data structures to solve problems.",
-      dueDate: hw3Due.toISOString(),
+      dueAt: hw3Due.toISOString(),
       status: "submitted",
-      priority: "high",
-      grade: 92,
-      feedback: "Excellent work! Your code is clean and well-optimized. Great job on the optimization section.",
-      timeSpent: 3.5 * 60, // 3.5 hours (getting faster!)
-      submittedAt: new Date(hw3Due.getTime() - 3 * 60 * 60 * 1000).toISOString(),
     });
     
     // === IN PROGRESS (perfect for demo) ===
@@ -88,18 +73,8 @@ export function generateCSAssignments(courses: Course[], userId: string, now: Da
       description: course.code === "CS101"
         ? "Implement Fibonacci using recursion. Compare performance with iterative approach. Must include: recursive function, iterative function, timing comparison, analysis of time complexity."
         : "Implement and analyze graph traversal algorithms.",
-      dueDate: hw4Due.toISOString(),
+      dueAt: hw4Due.toISOString(),
       status: "in_progress",
-      priority: "urgent",
-      progress: 60,
-      estimatedTimeRemaining: 2 * 60, // 2 hours
-      checklist: [
-        { id: "1", text: "Recursive function implemented", completed: true },
-        { id: "2", text: "Iterative function implemented", completed: true },
-        { id: "3", text: "Timing comparison", completed: false },
-        { id: "4", text: "Complexity analysis", completed: false },
-      ],
-      timeSpent: 3 * 60, // Already spent 3 hours
     });
     
     // === UPCOMING ===
@@ -115,11 +90,8 @@ export function generateCSAssignments(courses: Course[], userId: string, now: Da
       description: course.code === "CS101"
         ? "Design and implement classes. Include inheritance, polymorphism, and encapsulation."
         : "Implement BST operations: insert, search, delete, and traversal.",
-      dueDate: hw5Due.toISOString(),
+      dueAt: hw5Due.toISOString(),
       status: "planned",
-      priority: "medium",
-      estimatedTimeRemaining: 6 * 60, // 6 hours
-      autoSuggestion: "Start this weekend - typically takes 6 hours based on your pace",
     });
     
     // Assignment 6: Due in 12 days
@@ -133,10 +105,8 @@ export function generateCSAssignments(courses: Course[], userId: string, now: Da
       description: course.code === "CS201"
         ? "Implement BFS and DFS. Compare performance and use cases."
         : "Final project preparation and planning.",
-      dueDate: hw6Due.toISOString(),
+      dueAt: hw6Due.toISOString(),
       status: "planned",
-      priority: "low",
-      estimatedTimeRemaining: 8 * 60,
     });
   });
   
@@ -158,13 +128,8 @@ export function generateBusinessAssignments(courses: Course[], userId: string, n
       description: course.code === "PSYCH101"
         ? "Compare and contrast classical and operant conditioning. Provide real-world examples."
         : "Analyze a company using SWOT framework.",
-      dueDate: hw1Due.toISOString(),
+      dueAt: hw1Due.toISOString(),
       status: "submitted",
-      priority: "medium",
-      grade: 82,
-      feedback: "Good analysis. Add more examples and connect to course materials.",
-      timeSpent: 4 * 60,
-      submittedAt: new Date(hw1Due.getTime() - 4 * 60 * 60 * 1000).toISOString(),
     });
     
     // In progress
@@ -178,12 +143,8 @@ export function generateBusinessAssignments(courses: Course[], userId: string, n
       description: course.code === "PSYCH101"
         ? "Analyze a case study involving memory systems. Discuss STM, LTM, and memory disorders."
         : "Compare different leadership styles with examples.",
-      dueDate: hw2Due.toISOString(),
+      dueAt: hw2Due.toISOString(),
       status: "in_progress",
-      priority: "high",
-      progress: 70,
-      estimatedTimeRemaining: 2 * 60,
-      timeSpent: 4 * 60,
     });
     
     // Upcoming
@@ -195,10 +156,8 @@ export function generateBusinessAssignments(courses: Course[], userId: string, n
       courseId: course.id,
       title: course.code === "BUS201" ? "Organizational Behavior Analysis" : "Research Paper",
       description: "Apply course concepts to real-world scenarios.",
-      dueDate: hw3Due.toISOString(),
+      dueAt: hw3Due.toISOString(),
       status: "planned",
-      priority: "medium",
-      estimatedTimeRemaining: 5 * 60,
     });
   });
   
