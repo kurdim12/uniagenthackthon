@@ -9,6 +9,18 @@ interface Course {
   title: string;
 }
 
+interface ConversationTemplate {
+  courseCode: string;
+  userPrompt: string;
+  assistantResponse: string;
+  agent: "course" | "assignment" | "planner" | "exam" | "notes" | "research" | "campus";
+  citations: { sourceId: string; snippet: string; }[];
+  showStreaming?: boolean;
+  showVoice?: boolean;
+  hasImage?: boolean;
+  imageType?: string;
+}
+
 // Agent routing keywords
 const AGENT_KEYWORDS = {
   course: ["explain", "what is", "concept", "material", "understand", "learn"],
@@ -622,7 +634,7 @@ Want me to help test this function?`,
 
   // Generate conversations for each course
   courses.forEach((course) => {
-    const courseTemplates = conversationTemplates.filter(t => t.courseCode === course.code);
+    const courseTemplates: ConversationTemplate[] = conversationTemplates.filter(t => t.courseCode === course.code);
     
     // If no templates for this course, create default ones
     if (courseTemplates.length === 0) {
@@ -633,6 +645,7 @@ Want me to help test this function?`,
         agent: "course" as const,
         citations: [],
         showStreaming: true,
+        showVoice: false,
       });
     }
     
@@ -844,7 +857,7 @@ Want a day-by-day study schedule?`,
   ];
 
   courses.forEach((course) => {
-    const courseTemplates = conversationTemplates.filter(t => t.courseCode === course.code);
+    const courseTemplates: ConversationTemplate[] = conversationTemplates.filter(t => t.courseCode === course.code);
     
     if (courseTemplates.length === 0) {
       courseTemplates.push({
@@ -854,6 +867,7 @@ Want a day-by-day study schedule?`,
         agent: "course" as const,
         citations: [],
         showStreaming: true,
+        showVoice: false,
       });
     }
     
