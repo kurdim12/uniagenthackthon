@@ -3,22 +3,24 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Dashboard } from '@/components/dashboard/Dashboard';
-import { useStore } from '@/store';
+import { useStore } from '@/lib/store';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { loadExams, exams, loading, error } = useStore(state => state.dashboard);
+  const exams = useStore(state => state.exams);
+  const user = useStore(state => state.getCurrentUser());
+  const initialized = useStore(state => state.initialized);
+  const initialize = useStore(state => state.initialize);
 
   useEffect(() => {
-    loadExams().catch((err: Error) => {
-      console.error('Failed to load dashboard:', err);
-      if (err.message === 'Unauthorized') {
-        router.push('/auth/login');
-      }
-    });
-  }, [loadExams, router]);
+    if (!initialized) {
+      initialize().catch((err: Error) => {
+        console.error('Failed to initialize:', err);
+      });
+    }
+  }, [initialized, initialize]);
 
-  if (loading) {
+  if (!initialized) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -29,20 +31,9 @@ export default function DashboardPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">Error: {error}</p>
-          <button
-            onClick={() => loadExams()}
-            className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
+  if (!user) {
+    router.push('/auth/select-account');
+    return null;
   }
 
   return <Dashboard exams={exams} />;
