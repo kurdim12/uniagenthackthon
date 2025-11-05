@@ -1,0 +1,143 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String?
+  name         String
+  avatar       String?
+  role         String    @default("student")
+  isDemo       Boolean   @default(false)
+  points       Int       @default(0)
+  streak       Int       @default(0)
+  level        Int       @default(1)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastLogin    DateTime?
+
+  sessions     Session[]
+  exams        Exam[]
+  responses    Response[]
+  timerConfig  TimerConfig?
+  prenProfile  PrenProfile?
+
+  @@index([email])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+enum ExamStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+}
+
+model Exam {
+  id        String     @id @default(cuid())
+  userId    String
+  title     String
+  status    ExamStatus @default(DRAFT)
+  startedAt DateTime?
+  completedAt DateTime?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questions Question[]
+  responses Response[]
+
+  @@index([userId, status])
+}
+
+model Question {
+  id             String  @id @default(cuid())
+  examId         String
+  order          Int
+  type           String  // "MCQ" | "OPEN_ENDED"
+  content        String
+  choices        Json?   // For MCQ: {id: string, text: string}[]
+  canonicalAnswer String?
+  weight         Float   @default(1.0)
+
+  exam      Exam       @relation(fields: [examId], references: [id], onDelete: Cascade)
+  responses Response[]
+
+  @@index([examId])
+}
+
+model Response {
+  id         String   @id @default(cuid())
+  userId     String
+  examId     String
+  questionId String
+  content    String
+  createdAt  DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exam     Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  analysis Analysis?
+
+  @@unique([userId, examId, questionId])
+  @@index([userId])
+  @@index([examId])
+}
+
+model Analysis {
+  id         String   @id @default(cuid())
+  responseId String   @unique
+  score      Float    // 0.0 to 1.0
+  feedback   String
+  model      String?  // "heuristic" | "gpt-4o-mini" | etc
+  createdAt  DateTime @default(now())
+
+  response Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
+}
+
+model TimerConfig {
+  id           String @id @default(cuid())
+  userId       String @unique
+  baseSeconds  Int    @default(1500)  // 25 minutes
+  minSeconds   Int    @default(900)   // 15 minutes
+  maxSeconds   Int    @default(3000)  // 50 minutes
+  adaptiveness Float  @default(0.5)   // 0.0 to 1.0
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PrenProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  practicalScore      Float
+  reflectiveScore     Float
+  experimentalScore   Float
+  narrativeScore      Float
+  dominantStyle       String
+  recommendedMaterials Json
+  studyPlan           Json
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

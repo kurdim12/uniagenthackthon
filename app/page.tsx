@@ -15,9 +15,7 @@ export default function HomePage() {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return null;
-  }
+  // Don't block rendering - just return the content
 
   const features = [
     {
@@ -139,17 +137,20 @@ export default function HomePage() {
             transition={{ delay: 0.5, duration: 0.6 }}
             className="my-12"
           >
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-primary/20 ai-glow max-w-4xl mx-auto">
-              <div className="aspect-video">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-primary/20 max-w-4xl mx-auto">
+              <div className="aspect-video relative bg-gradient-to-br from-slate-900 to-slate-800">
                 <iframe
-                  src="https://drive.google.com/file/d/1YOpwcD_ipE0gLpUqF-pxEOzHl4DqsmVD/preview"
-                  className="w-full h-full"
-                  allow="autoplay"
+                  className="absolute inset-0 w-full h-full"
+                  src="https://www.youtube.com/embed/NCQug3dqeuE?si=fMa50NFHa6bLTFVh"
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
                 />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground mt-4">Watch how UNI-Agent transforms your study experience</p>
+            <p className="text-sm text-muted-foreground mt-4 text-center">Watch how UNI-Agent transforms your study experience</p>
           </motion.div>
 
           <motion.div

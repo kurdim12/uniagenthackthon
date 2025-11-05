@@ -7,6 +7,11 @@ export function PWAInstaller() {
   const pathname = usePathname();
 
   useEffect(() => {
+    // Only register service worker in production
+    if (process.env.NODE_ENV !== 'production') {
+      return;
+    }
+
     // Register service worker
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
@@ -15,7 +20,8 @@ export function PWAInstaller() {
           console.log("Service Worker registered:", registration);
         })
         .catch((error) => {
-          console.error("Service Worker registration failed:", error);
+          // Silently fail in development
+          console.log("Service Worker not available in development mode");
         });
     }
 
