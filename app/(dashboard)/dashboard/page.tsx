@@ -10,7 +10,7 @@ export default function DashboardPage() {
   const { loadExams, exams, loading, error } = useStore(state => state.dashboard);
 
   useEffect(() => {
-    loadExams().catch(err => {
+    loadExams().catch((err: Error) => {
       console.error('Failed to load dashboard:', err);
       if (err.message === 'Unauthorized') {
         router.push('/auth/login');

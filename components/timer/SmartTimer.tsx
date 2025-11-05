@@ -22,7 +22,7 @@ export function SmartTimer({ questionId, onExpire }: SmartTimerProps) {
   useEffect(() => {
     if (isActive) {
       intervalRef.current = setInterval(() => {
-        setDisplayTime(prev => {
+        setDisplayTime((prev: number) => {
           const next = prev - 1;
           if (next <= 0) {
             pause();

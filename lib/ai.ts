@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import type { AIResponse, Material, Note } from './types';
 
 const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -11,6 +12,53 @@ interface AnalysisResult {
   feedback: string;
   model: string;
 }
+
+interface AiAskOptions {
+  courseId?: string;
+  materials?: Material[];
+  notes?: Note[];
+  userId?: string;
+}
+
+// Client-side AI ask function for tutor
+export async function aiAsk(
+  question: string,
+  options: AiAskOptions = {}
+): Promise<AIResponse & { workflow?: any; reasoning?: string; agentCalls?: any[]; toolsUsed?: any[] }> {
+  const response = await fetch('/api/ai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: question,
+      courseId: options.courseId,
+      userId: options.userId,
+      context: {
+        snippets: [
+          ...(options.materials || []).map((m: Material) => ({
+            sourceId: m.id,
+            sourceType: 'material' as const,
+            title: m.title,
+            text: m.textPreview || '',
+          })),
+          ...(options.notes || []).map((n: Note) => ({
+            sourceId: n.id,
+            sourceType: 'note' as const,
+            title: n.title,
+            text: n.body,
+          })),
+        ],
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to get AI response');
+  }
+
+  return response.json();
+}
+
+// Server-side analysis function for exams
 
 export async function analyzeResponse(
   question: string,

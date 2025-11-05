@@ -78,7 +78,7 @@ export function CourseTutor() {
           "tutor",
           {
             question,
-            materialRefs: (response.citations || []).map((c) => c.sourceId).filter(Boolean),
+            materialRefs: (response.citations || []).map((c: any) => c.sourceId).filter(Boolean),
           },
           duration,
           "completed"
