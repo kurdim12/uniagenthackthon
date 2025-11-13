@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/db';
 import { randomBytes } from 'crypto';
+import { sendVerificationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,10 +60,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // In production, send verification email here
-    // await sendVerificationEmail(email, verificationToken);
-    console.log(`Verification token for ${email}: ${verificationToken}`);
-    console.log(`Verification URL: ${process.env.NEXT_PUBLIC_APP_URL}/auth/verify?token=${verificationToken}`);
+    // Send verification email
+    await sendVerificationEmail(email, verificationToken, name);
 
     return NextResponse.json({
       success: true,

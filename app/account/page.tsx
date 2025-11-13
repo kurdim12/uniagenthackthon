@@ -23,6 +23,7 @@ export default function AccountPage() {
   const router = useRouter();
   const [data, setData] = useState<SubscriptionData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   useEffect(() => {
     fetchAccountData();
@@ -48,6 +49,27 @@ export default function AccountPage() {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const handleManageBilling = async () => {
+    setPortalLoading(true);
+    try {
+      const response = await fetch('/api/stripe/portal', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const { url } = await response.json();
+        window.location.href = url;
+      } else {
+        alert('Failed to open billing portal. Please try again.');
+      }
+    } catch (error) {
+      console.error('Portal error:', error);
+      alert('Failed to open billing portal. Please try again.');
+    } finally {
+      setPortalLoading(false);
+    }
   };
 
   const getPlanIcon = (plan: string) => {
@@ -239,14 +261,22 @@ export default function AccountPage() {
           transition={{ delay: 0.5 }}
           className="grid md:grid-cols-2 gap-6"
         >
-          <button className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 text-left hover:shadow-lg transition-all group">
+          <button 
+            onClick={handleManageBilling}
+            disabled={portalLoading || data.plan === 'FREE'}
+            className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 text-left hover:shadow-lg transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <div className="flex items-center gap-4">
               <div className="p-3 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
                 <CreditCard className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold">Billing History</h3>
-                <p className="text-sm text-muted-foreground">View invoices and payments</p>
+                <h3 className="font-semibold">
+                  {portalLoading ? 'Loading...' : 'Billing Portal'}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {data.plan === 'FREE' ? 'Upgrade to access billing' : 'Manage subscription and invoices'}
+                </p>
               </div>
             </div>
           </button>

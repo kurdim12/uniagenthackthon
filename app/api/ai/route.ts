@@ -4,6 +4,8 @@ import type { AIRequest, AIResponse, Agent } from "@/lib/types";
 import { config, isOfflineMode, isCloudMode, isDemoMode } from "@/lib/config";
 import { vectorSearch } from "@/lib/supabase";
 import { orchestrate } from "@/lib/orchestrator/orchestrator";
+import { checkAIUsageLimit } from "@/lib/middleware/usage";
+import { incrementUsage } from "@/lib/subscription";
 
 const openai = new OpenAI({
   apiKey: config.ai.apiKey || "sk-demo",
@@ -69,6 +71,14 @@ function classifyIntent(prompt: string): Agent {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check usage limits first (only in cloud mode)
+    if (isCloudMode()) {
+      const limitCheck = await checkAIUsageLimit(request);
+      if (limitCheck) {
+        return limitCheck; // Return error response if limit reached
+      }
+    }
+
     const body: AIRequest = await request.json();
     const { prompt, context, mode: requestMode, userId } = body;
     const streamEnabled = (body as any).stream === true; // Disable streaming by default
@@ -237,6 +247,16 @@ You are acting as the ${agent.toUpperCase()} agent, specialized in ${agent}-rela
       answer,
       citations,
     };
+
+    // Track usage in cloud mode
+    if (isCloudMode() && userId) {
+      try {
+        await incrementUsage(userId, 'aiRequests', 1);
+      } catch (error) {
+        console.error('Failed to track usage:', error);
+        // Don't fail the request if usage tracking fails
+      }
+    }
 
     return NextResponse.json(response);
   } catch (error) {

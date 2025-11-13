@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 export default function PricingPage() {
   const router = useRouter();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+  const [loading, setLoading] = useState<string | null>(null);
 
   const plans = [
     {
@@ -75,13 +76,37 @@ export default function PricingPage() {
     },
   ];
 
-  const handleSelectPlan = (planName: string) => {
+  const handleSelectPlan = async (planName: string) => {
     if (planName === 'Free') {
       router.push('/auth/signup?plan=free');
     } else if (planName === 'Enterprise') {
       window.location.href = 'mailto:sales@uniagent.com?subject=Enterprise Plan Inquiry';
     } else {
-      router.push(`/auth/signup?plan=${planName.toLowerCase()}`);
+      // Redirect to Stripe Checkout
+      setLoading(planName);
+      try {
+        const response = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            plan: planName.toLowerCase(),
+            billingCycle,
+          }),
+        });
+
+        if (response.ok) {
+          const { url } = await response.json();
+          window.location.href = url;
+        } else {
+          // User not logged in, redirect to signup
+          router.push(`/auth/signup?plan=${planName.toLowerCase()}`);
+        }
+      } catch (error) {
+        console.error('Checkout error:', error);
+        alert('Failed to start checkout. Please try again.');
+      } finally {
+        setLoading(null);
+      }
     }
   };
 
@@ -192,13 +217,21 @@ export default function PricingPage() {
 
                 <button
                   onClick={() => handleSelectPlan(plan.name)}
-                  className={`w-full py-3 rounded-xl font-semibold mb-8 transition-all ${
+                  disabled={loading !== null}
+                  className={`w-full py-3 rounded-xl font-semibold mb-8 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                     plan.highlighted
                       ? 'bg-gradient-to-r from-primary to-purple-600 text-white hover:shadow-xl hover:scale-105'
                       : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600'
                   }`}
                 >
-                  {plan.cta}
+                  {loading === plan.name ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Processing...
+                    </span>
+                  ) : (
+                    plan.cta
+                  )}
                 </button>
 
                 <div className="space-y-3">
