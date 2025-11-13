@@ -24,14 +24,46 @@ model User {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   lastLogin    DateTime?
+  
+  // SaaS fields
+  emailVerified     Boolean   @default(false)
+  verificationToken String?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  stripeCustomerId  String?   @unique
+  subscriptionId    String?   @unique
+  plan              SubscriptionPlan @default(FREE)
+  subscriptionStatus SubscriptionStatus @default(INACTIVE)
+  trialEndsAt       DateTime?
+  aiRequestsUsed    Int       @default(0)
+  storageUsed       Int       @default(0) // in bytes
+  lastResetAt       DateTime  @default(now())
 
   sessions     Session[]
   exams        Exam[]
   responses    Response[]
   timerConfig  TimerConfig?
   prenProfile  PrenProfile?
+  usageLogs    UsageLog[]
+  organizations OrganizationMember[]
 
   @@index([email])
+  @@index([stripeCustomerId])
+  @@index([plan])
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
 }
 
 model Session {
@@ -140,4 +172,59 @@ model PrenProfile {
   updatedAt           DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// SaaS Models
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  plan      SubscriptionPlan @default(FREE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  members OrganizationMember[]
+  
+  @@index([plan])
+}
+
+model OrganizationMember {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  role           OrgRole  @default(MEMBER)
+  joinedAt       DateTime @default(now())
+  
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([organizationId, userId])
+  @@index([userId])
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model UsageLog {
+  id        String   @id @default(cuid())
+  userId    String
+  type      UsageType
+  count     Int      @default(1)
+  metadata  Json?
+  createdAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, type, createdAt])
+  @@index([createdAt])
+}
+
+enum UsageType {
+  AI_REQUEST
+  STORAGE
+  API_CALL
+  EXPORT
 }
